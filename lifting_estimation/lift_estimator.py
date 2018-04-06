@@ -26,9 +26,9 @@ class LiftEstimator(object):
                                       random_state=1,
                                       # learning_rate='adaptive',
                                       learning_rate_init=0.002,
-                                      # max_iter=40,
+                                      # max_iter=250,
                                       warm_start=True)
-        steps = 40
+        steps = 100
         print('Training...{} steps'.format(steps))
         bar = progressbar.ProgressBar(max_value=steps)
         bar.update(0)
