@@ -6,6 +6,9 @@ import progressbar
 from sklearn.model_selection import train_test_split
 from sklearn.neural_network import MLPRegressor
 from sklearn import preprocessing
+from sklearn.externals import joblib
+
+MODEL_FILENAME = 'trained_model.pkl'
 
 
 class LiftEstimator(object):
@@ -19,25 +22,27 @@ class LiftEstimator(object):
         self.split_data = self.get_split_df(train_df)
         if self.model is None:
             self.model = MLPRegressor(solver='lbfgs', alpha=1e-5,
-                                      hidden_layer_sizes=(15,),
+                                      hidden_layer_sizes=(15, 4),
                                       random_state=1,
-                                      learning_rate='adaptive',
-                                      learning_rate_init=0.02,
+                                      # learning_rate='adaptive',
+                                      learning_rate_init=0.2,
                                       max_iter=1, warm_start=True)
-        print('Training...')
         steps = 600
+        print('Training...{} steps'.format(steps))
         bar = progressbar.ProgressBar(max_value=steps)
         bar.update(0)
         for i in range(steps):
             self.model.fit(self.split_data['x_train'],
                            self.split_data['y_train'])
             bar.update(i)
+        print(' Finished Training')
 
     def predict(self, input_data=None):
         input_data = input_data if input_data is not \
                                    None else self.split_data['x_test']
-        print(self.model.score(self.split_data['x_test'],
-                               self.split_data['y_test']))
+        score = self.model.score(self.split_data['x_test'],
+                                 self.split_data['y_test'])
+        print('score={}'.format(score))
         return self.model.predict(input_data)
 
     def get_split_df(self, train_df):
@@ -46,14 +51,7 @@ class LiftEstimator(object):
         bar.update(0)
         training_df = self.drop_unnecessary_columns(train_df)
         bar.update(1)
-        values = {'BestBenchKg': training_df['BestBenchKg'].mean(),
-                  'BestSquatKg': training_df['BestSquatKg'].mean(),
-                  'BodyweightKg': training_df['BodyweightKg'].mean(),
-                  'BestDeadliftKg': training_df['BestDeadliftKg'].mean(),
-                  'Age': training_df['Age'].mean(),
-                  'Sex': 'M',
-                  'Equipment': training_df['Equipment'].sample(1).iloc[0]}
-        training_df = training_df.fillna(value=values)
+        training_df = self.fillna(training_df)
         x_data = training_df.drop(['BestBenchKg', 'BestSquatKg'], axis=1)
         bar.update(2)
         x_data = self.set_categorical_data(x_data)
@@ -72,6 +70,17 @@ class LiftEstimator(object):
                 'x_test': X_test,
                 'y_train': y_train,
                 'y_test': y_test}
+
+    def fillna(self, training_df):
+        values = {'BestBenchKg': training_df['BestBenchKg'].mean(),
+                  'BestSquatKg': training_df['BestSquatKg'].mean(),
+                  'BodyweightKg': training_df['BodyweightKg'].mean(),
+                  'BestDeadliftKg': training_df['BestDeadliftKg'].mean(),
+                  'Age': training_df['Age'].mean(),
+                  'Sex': 'M',
+                  'Equipment': training_df['Equipment'].sample(1).iloc[0]}
+        training_df = training_df.fillna(value=values)
+        return training_df
 
     def set_categorical_data(self, x_data):
         equipment_encode = preprocessing.LabelEncoder()
@@ -96,6 +105,13 @@ class LiftEstimator(object):
         training_df = training_df.drop(drop_columns, axis=1)
         return training_df
 
+    def save(self):
+        joblib.dump(self.model, MODEL_FILENAME)
+
+    def load(self):
+        if os.path.exists(MODEL_FILENAME):
+            self.model = joblib.load(MODEL_FILENAME)
+
 
 if __name__ == '__main__':
     LIFTING_DATA = os.path.abspath(os.path.join(
@@ -104,3 +120,4 @@ if __name__ == '__main__':
     estimator = LiftEstimator()
     estimator.train(train_df=training_data)
     print(estimator.predict())
+    estimator.save()
