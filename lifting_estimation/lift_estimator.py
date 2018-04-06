@@ -25,7 +25,7 @@ class LiftEstimator(object):
                                       hidden_layer_sizes=(5, 4),
                                       random_state=1,
                                       # learning_rate='adaptive',
-                                      learning_rate_init=0.02,
+                                      learning_rate_init=0.002,
                                       # max_iter=40,
                                       warm_start=True)
         steps = 40
