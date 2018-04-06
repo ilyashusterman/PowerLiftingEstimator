@@ -25,9 +25,10 @@ class LiftEstimator(object):
                                       hidden_layer_sizes=(5, 4),
                                       random_state=1,
                                       # learning_rate='adaptive',
-                                      learning_rate_init=0.2,
-                                      max_iter=1, warm_start=True)
-        steps = 100
+                                      learning_rate_init=0.02,
+                                      # max_iter=40,
+                                      warm_start=True)
+        steps = 40
         print('Training...{} steps'.format(steps))
         bar = progressbar.ProgressBar(max_value=steps)
         bar.update(0)
