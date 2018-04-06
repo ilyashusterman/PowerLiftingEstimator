@@ -21,13 +21,13 @@ class LiftEstimator(object):
     def train(self, train_df=None):
         self.split_data = self.get_split_df(train_df)
         if self.model is None:
-            self.model = MLPRegressor(solver='lbfgs', alpha=1e-5,
-                                      hidden_layer_sizes=(15, 4),
+            self.model = MLPRegressor(solver='adam', alpha=1e-5,
+                                      hidden_layer_sizes=(5, 4),
                                       random_state=1,
                                       # learning_rate='adaptive',
                                       learning_rate_init=0.2,
                                       max_iter=1, warm_start=True)
-        steps = 600
+        steps = 100
         print('Training...{} steps'.format(steps))
         bar = progressbar.ProgressBar(max_value=steps)
         bar.update(0)
