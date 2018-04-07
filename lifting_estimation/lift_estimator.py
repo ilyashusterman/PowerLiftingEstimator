@@ -87,7 +87,17 @@ class LiftEstimator(object):
                 'y_train': y_train,
                 'y_test': y_test}
 
+    def fillNaN_with_unifrand(self, df, column):
+        a = df[column].values
+        m = numpy.isnan(a)  # mask of NaNs
+        mu, sigma = df[column].mean(), df[column].std()
+        a[m] = numpy.random.normal(mu, sigma, size=m.sum())
+        return df[column]
+
     def fillna(self, training_df):
+        for column in ['BestBenchKg', 'BestSquatKg', 'BodyweightKg', 'Age',
+                       'BestDeadliftKg']:
+            training_df[column] = training_df[column].abs()
         values = {'BestBenchKg': training_df['BestBenchKg'].mean(),
                   'BestSquatKg': training_df['BestSquatKg'].mean(),
                   'BodyweightKg': training_df['BodyweightKg'].mean(),
@@ -95,6 +105,7 @@ class LiftEstimator(object):
                   'Age': training_df['Age'].mean(),
                   'Sex': 'M',
                   'Equipment': training_df['Equipment'].sample(1).iloc[0]}
+        # training_df['Age'] = self.fillNaN_with_unifrand(training_df, 'Age')
         training_df = training_df.fillna(value=values)
         return training_df
 
@@ -151,4 +162,3 @@ if __name__ == '__main__':
         estimator.train(train_df=training_data)
         print(estimator.predict())
         estimator.save()
-
