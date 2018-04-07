@@ -68,14 +68,14 @@ class LiftEstimator(object):
         training_df = self.drop_unnecessary_columns(train_df)
         bar.update(1)
         training_df = self.fillna(training_df)
-        x_data = training_df.drop(['BestBenchKg', 'BestSquatKg'], axis=1)
         bar.update(2)
+        x_data = training_df.drop(['BestBenchKg', 'BestSquatKg'], axis=1)
         x_data = self.set_categorical_data(x_data)
         bar.update(3)
-        bar.update(4)
         labels_list = list(tuple(zip(training_df['BestBenchKg'],
                                      training_df['BestSquatKg'])))
         labels = numpy.array(labels_list)
+        bar.update(4)
         X_train, X_test, y_train, y_test = train_test_split(
             x_data, labels, test_size=0.33,
             random_state=42)
@@ -150,15 +150,15 @@ if __name__ == '__main__':
                         action="store_true")
     args = parser.parse_args()
 
-    LIFTING_DATA = os.path.abspath(os.path.join(
-        os.path.dirname(__file__), '../data/openpowerlifting.csv'))
-    training_data = pandas.read_csv(LIFTING_DATA)
     estimator = LiftEstimator()
     if args.estimate:
         estimator.load()
         predict_data = estimator.get_input_data()
         print(estimator.predict(predict_data))
     else:
+        LIFTING_DATA = os.path.abspath(os.path.join(
+            os.path.dirname(__file__), '../data/openpowerlifting.csv'))
+        training_data = pandas.read_csv(LIFTING_DATA)
         estimator.train(train_df=training_data)
         print(estimator.predict())
         estimator.save()
